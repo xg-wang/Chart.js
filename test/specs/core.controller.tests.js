@@ -759,6 +759,37 @@ describe('Chart', function() {
 			expect(yScale.options.ticks.max).toBe(10);
 		});
 
+		it ('should update scales options from new object', function() {
+			var chart = acquireChart({
+				type: 'line',
+				data: {
+					labels: ['A', 'B', 'C', 'D'],
+					datasets: [{
+						data: [10, 20, 30, 100]
+					}]
+				},
+				options: {
+					responsive: true
+				}
+			});
+
+			var newScalesConfig = {
+				yAxes: [{
+					ticks: {
+						min: 0,
+						max: 10
+					}
+				}]
+			};
+			chart.options.scales = newScalesConfig;
+
+			chart.update();
+
+			var yScale = chart.scales['y-axis-0'];
+			expect(yScale.options.ticks.min).toBe(0);
+			expect(yScale.options.ticks.max).toBe(10);
+		});
+
 		it ('should update tooltip options', function() {
 			var chart = acquireChart({
 				type: 'line',

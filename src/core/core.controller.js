@@ -45,8 +45,8 @@ module.exports = function(Chart) {
 	function updateConfig(chart) {
 		var newOptions = chart.options;
 
-		// Update Scale(s) with options
-		if (newOptions.scale || newOptions.scales) {
+		// Update Scale(s) or Tooltip with options if needed
+		if (newOptions.scale || newOptions.scales || newOptions.tooltips) {
 			newOptions = helpers.configMerge(
 				Chart.defaults.global,
 				Chart.defaults[chart.config.type],
@@ -61,10 +61,10 @@ module.exports = function(Chart) {
 					chart.scales[scaleOptions.id].options = scaleOptions;
 				});
 			}
-		}
 
-		// Tooltip
-		chart.tooltip._options = newOptions.tooltips;
+			// Tooltip
+			chart.tooltip._options = newOptions.tooltips;
+		}
 	}
 
 	function positionIsHorizontal(position) {
