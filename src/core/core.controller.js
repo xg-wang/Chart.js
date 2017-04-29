@@ -46,12 +46,21 @@ module.exports = function(Chart) {
 		var newOptions = chart.options;
 
 		// Update Scale(s) with options
-		if (newOptions.scale) {
-			chart.scale.options = newOptions.scale;
-		} else if (newOptions.scales) {
-			newOptions.scales.xAxes.concat(newOptions.scales.yAxes).forEach(function(scaleOptions) {
-				chart.scales[scaleOptions.id].options = scaleOptions;
-			});
+		if (newOptions.scale || newOptions.scales) {
+			newOptions = helpers.configMerge(
+				Chart.defaults.global,
+				Chart.defaults[chart.config.type],
+				newOptions || {});
+			chart.options = newOptions;
+			chart.ensureScalesHaveIDs();
+
+			if (newOptions.scale) {
+				chart.scale.options = newOptions.scale;
+			} else if (newOptions.scales) {
+				newOptions.scales.xAxes.concat(newOptions.scales.yAxes).forEach(function(scaleOptions) {
+					chart.scales[scaleOptions.id].options = scaleOptions;
+				});
+			}
 		}
 
 		// Tooltip
