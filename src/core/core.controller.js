@@ -50,7 +50,7 @@ module.exports = function(Chart) {
 			newOptions = helpers.configMerge(
 				Chart.defaults.global,
 				Chart.defaults[chart.config.type],
-				newOptions || {});
+				newOptions);
 			chart.options = newOptions;
 			chart.ensureScalesHaveIDs();
 
