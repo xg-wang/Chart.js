@@ -45,26 +45,30 @@ module.exports = function(Chart) {
 	function updateConfig(chart) {
 		var newOptions = chart.options;
 
-		// Update Scale(s) or Tooltip with options if needed
-		if (newOptions.scale || newOptions.scales || newOptions.tooltips) {
-			newOptions = helpers.configMerge(
-				Chart.defaults.global,
-				Chart.defaults[chart.config.type],
-				newOptions);
-			chart.options = newOptions;
-			chart.ensureScalesHaveIDs();
+		helpers.each(chart.scales, function(scale) {
+			Chart.layoutService.removeBox(chart, scale);
+		});
 
-			if (newOptions.scale) {
-				chart.scale.options = newOptions.scale;
-			} else if (newOptions.scales) {
-				newOptions.scales.xAxes.concat(newOptions.scales.yAxes).forEach(function(scaleOptions) {
-					chart.scales[scaleOptions.id].options = scaleOptions;
-				});
+		newOptions = helpers.configMerge(
+			Chart.defaults.global,
+			Chart.defaults[chart.config.type],
+			newOptions);
+		// only reset scale(s) with options if options not reset
+		if (chart.options === chart.config.options) {
+			if (newOptions.scales) {
+				chart.options.scales = newOptions.scales;
+			} else if (newOptions.scale) {
+				chart.options.scale = newOptions.scale;
 			}
-
-			// Tooltip
-			chart.tooltip._options = newOptions.tooltips;
+		} else {
+			chart.options = newOptions;
 		}
+		chart.config.options = chart.options;
+		chart.ensureScalesHaveIDs();
+		chart.buildScales();
+		// Tooltip
+		chart.tooltip._options = newOptions.tooltips;
+		chart.tooltip.initialize();
 	}
 
 	function positionIsHorizontal(position) {
