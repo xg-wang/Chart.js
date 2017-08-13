@@ -23,13 +23,18 @@ module.exports = function(Chart) {
 	helpers.configMerge = function(/* objects ... */) {
 		return helpers.merge(helpers.clone(arguments[0]), [].slice.call(arguments, 1), {
 			merger: function(key, target, source, options) {
-				var tval = target[key] || {};
-				var sval = source[key];
+				var tval, sval;
 
-				if (key === 'scales') {
+				if (key === 'scales' || key === '_scales') {
+					key = 'scales';
+					tval = target[key] || {};
+					sval = source[key];
 					// scale config merging is complex. Add our own function here for that
 					target[key] = helpers.scaleMerge(tval, sval);
-				} else if (key === 'scale') {
+				} else if (key === 'scale' || key === '_scale') {
+					key = 'scale';
+					tval = target[key] || {};
+					sval = source[key];
 					// used in polar area & radar charts since there is only one scale
 					target[key] = helpers.merge(tval, [Chart.scaleService.getScaleDefaults(sval.type), sval]);
 				} else {

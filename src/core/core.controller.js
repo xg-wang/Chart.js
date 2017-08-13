@@ -38,22 +38,26 @@ module.exports = function(Chart) {
 		return config;
 	}
 
+	function resetNewFlags(chart) {
+		helpers.each(['_optionsNew', '_scaleNew', '_scalesNew'], function(flag) {
+			chart[flag] = false;
+		});
+	}
+
 	/**
 	 * Updates the config of the chart
+	 * If new option is created as a new object, default should be merged/
+	 * If there are axes specified in the new option,
+	 * we should replace the old axes with the new axes.
+	 * If not then we should keep the old ones, and put a console warning.
 	 * @param chart {Chart} chart to update the options for
 	 */
 	function updateConfig(chart) {
 		var newOptions = chart.options;
 
-		// Update Scale(s) or Tooltip with options if needed
-		if (newOptions.scale || newOptions.scales || newOptions.tooltips) {
-			newOptions = helpers.configMerge(
-				Chart.defaults.global,
-				Chart.defaults[chart.config.type],
-				newOptions);
-			chart.options = newOptions;
-			chart.ensureScalesHaveIDs();
-
+		// use old scales if user didn't specify explicitly
+		if (!chart._optionsNew && !chart._scaleNew && !chart._scalesNew) {
+			// If no new Object, just update chart.scale(s) options, chart.options already updated.
 			if (newOptions.scale) {
 				chart.scale.options = newOptions.scale;
 			} else if (newOptions.scales) {
@@ -61,10 +65,31 @@ module.exports = function(Chart) {
 					chart.scales[scaleOptions.id].options = scaleOptions;
 				});
 			}
-
-			// Tooltip
-			chart.tooltip._options = newOptions.tooltips;
+		} else {
+			// if anything is new object, we need to rebuild scales
+			helpers.each(chart.scales, function(scale) {
+				Chart.layoutService.removeBox(chart, scale);
+			});
+			newOptions = helpers.configMerge(
+				Chart.defaults.global,
+				Chart.defaults[chart.config.type],
+				newOptions);
+			if (chart._optionsNew) {
+				// if options are new, remerge all options
+				// then build new chart.scales from chart.options if needed
+				chart.options = chart.config.options = newOptions;
+			} else {
+				// if user only set new scales, only remerge scales options
+				helpers.each(['scales', 'scale'], function(type) {
+					chart.options[type] = chart.config.options[type] = newOptions[type];
+				});
+			}
+			resetNewFlags(chart);
+			chart.ensureScalesHaveIDs();
+			chart.buildScales();
 		}
+		// Tooltip
+		chart.tooltip._options = newOptions.tooltips;
 	}
 
 	function positionIsHorizontal(position) {
@@ -77,6 +102,7 @@ module.exports = function(Chart) {
 		 */
 		construct: function(item, config) {
 			var me = this;
+			me.setupAliases();
 
 			config = initConfig(config);
 
@@ -94,6 +120,7 @@ module.exports = function(Chart) {
 			me.aspectRatio = height ? width / height : null;
 			me.options = config.options;
 			me._bufferedRender = false;
+			resetNewFlags(me);
 
 			/**
 			 * Provided for backward compatibility, Chart and Chart.Controller have been merged,
@@ -109,16 +136,6 @@ module.exports = function(Chart) {
 			// Add the chart instance to the global namespace
 			Chart.instances[me.id] = me;
 
-			// Define alias to the config data: `chart.data === chart.config.data`
-			Object.defineProperty(me, 'data', {
-				get: function() {
-					return me.config.data;
-				},
-				set: function(value) {
-					me.config.data = value;
-				}
-			});
-
 			if (!context || !canvas) {
 				// The given item is not a compatible context2d element, let's return before finalizing
 				// the chart initialization but after setting basic chart / controller properties that
@@ -130,6 +147,54 @@ module.exports = function(Chart) {
 
 			me.initialize();
 			me.update();
+		},
+
+		/**
+		 * @private
+		 */
+		setupAliases: function() {
+			var me = this;
+			// Define alias to the config data: `chart.data === chart.config.data`
+			Object.defineProperty(me, 'data', {
+				get: function() {
+					return me.config.data;
+				},
+				set: function(value) {
+					me.config.data = value;
+				}
+			});
+
+			var Options = function(opt) {
+				opt = opt || {};
+				var keys = Object.keys(opt);
+				var klen = keys.length;
+				var k = 0;
+				for (; k < klen; ++k) {
+					this[keys[k]] = opt[keys[k]];
+				}
+			};
+			helpers.each(['scale', 'scales'], function(type) {
+				Object.defineProperty(Options.prototype, type, {
+					get: function() {
+						return this['_' + type];
+					},
+					set: function(value) {
+						me['_' + type + 'New'] = true;
+						this['_' + type] = value;
+					}
+				});
+			});
+			Object.defineProperty(me, 'options', {
+				get: function() {
+					return me._options;
+				},
+				set: function(value) {
+					me._optionsNew = true;
+					me._options = new Options(value);
+				}
+			});
+
+			me.options = new Options();
 		},
 
 		/**
