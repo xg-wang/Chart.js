@@ -772,6 +772,7 @@ describe('Logarithmic Scale tests', function() {
 
 		chart.options.scales.yAxes[0].ticks.reverse = true;	// Reverse mode
 		chart.update();
+		yScale = chart.scales.yScale;
 
 		expect(yScale.getPixelForValue(70, 0, 0)).toBeCloseToPixel(484);   // bottom - paddingBottom
 		expect(yScale.getPixelForValue(0, 0, 0)).toBeCloseToPixel(32);     // top + paddingTop
