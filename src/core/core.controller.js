@@ -60,12 +60,15 @@ module.exports = function(Chart) {
 			} else if (newOptions.scale) {
 				chart.options.scale = newOptions.scale;
 			}
+			if (newOptions.tooltips) {
+				chart.options.tooltips = newOptions.tooltips;
+			}
 		} else {
 			chart.options = newOptions;
 		}
 		chart.config.options = chart.options;
 		chart.ensureScalesHaveIDs();
-		chart.buildScales();
+		chart.buildOrUpdateScales();
 		// Tooltip
 		chart.tooltip._options = newOptions.tooltips;
 		chart.tooltip.initialize();
@@ -156,7 +159,7 @@ module.exports = function(Chart) {
 
 			// Make sure scales have IDs and are built before we build any controllers.
 			me.ensureScalesHaveIDs();
-			me.buildScales();
+			me.buildOrUpdateScales();
 			me.initToolTip();
 
 			// After init plugin notification
@@ -236,11 +239,15 @@ module.exports = function(Chart) {
 		/**
 		 * Builds a map of scale ID to scale object for future lookup.
 		 */
-		buildScales: function() {
+		buildOrUpdateScales: function() {
 			var me = this;
 			var options = me.options;
-			var scales = me.scales = {};
+			var scales = me.scales || {};
 			var items = [];
+			var updated = Object.keys(scales).reduce(function(obj, id) {
+				obj[id] = false;
+				return obj;
+			}, {});
 
 			if (options.scales) {
 				items = items.concat(
@@ -274,14 +281,29 @@ module.exports = function(Chart) {
 					scaleOptions.position = item.dposition;
 				}
 
-				var scale = new scaleClass({
-					id: scaleOptions.id,
-					options: scaleOptions,
-					ctx: me.ctx,
-					chart: me
+				var scale;
+				if (scales.hasOwnProperty(scaleOptions.id)) {
+					updated[scaleOptions.id] = true;
+					scale = scales[scaleOptions.id];
+					scale.options = scaleOptions;
+					scale.ctx = me.ctx;
+					scale.chart = me;
+				} else {
+					scale = new scaleClass({
+						id: scaleOptions.id,
+						options: scaleOptions,
+						ctx: me.ctx,
+						chart: me
+					});
+					scales[scale.id] = scale;
+				}
+				// clear up discarded scales
+				helpers.each(updated, function(id, hasUpdated) {
+					if (!hasUpdated) {
+						delete scales[id];
+					}
 				});
 
-				scales[scale.id] = scale;
 				scale.mergeTicksOptions();
 
 				// TODO(SB): I think we should be able to remove this custom case (options.scale)
@@ -291,6 +313,8 @@ module.exports = function(Chart) {
 					me.scale = scale;
 				}
 			});
+
+			me.scales = scales;
 
 			Chart.scaleService.addScalesToLayout(this);
 		},
