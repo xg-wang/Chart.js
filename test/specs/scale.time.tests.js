@@ -665,12 +665,12 @@ describe('Time scale tests', function() {
 			});
 			it ('should not add ticks for min and max if they extend the labels range', function() {
 				var chart = this.chart;
+				var scale = chart.scales.x;
 				var options = chart.options.scales.xAxes[0];
 
 				options.time.min = '2012';
 				options.time.max = '2051';
 				chart.update();
-				var scale = chart.scales.x;
 
 				expect(scale.min).toEqual(+moment('2012', 'YYYY'));
 				expect(scale.max).toEqual(+moment('2051', 'YYYY'));
@@ -679,12 +679,12 @@ describe('Time scale tests', function() {
 			});
 			it ('should not duplicate ticks if min and max are the labels limits', function() {
 				var chart = this.chart;
+				var scale = chart.scales.x;
 				var options = chart.options.scales.xAxes[0];
 
 				options.time.min = '2017';
 				options.time.max = '2042';
 				chart.update();
-				var scale = chart.scales.x;
 
 				expect(scale.min).toEqual(+moment('2017', 'YYYY'));
 				expect(scale.max).toEqual(+moment('2042', 'YYYY'));
@@ -693,10 +693,10 @@ describe('Time scale tests', function() {
 			});
 			it ('should correctly handle empty `data.labels`', function() {
 				var chart = this.chart;
+				var scale = chart.scales.x;
 
 				chart.data.labels = [];
 				chart.update();
-				var scale = chart.scales.x;
 
 				expect(scale.min).toEqual(+moment().startOf('day'));
 				expect(scale.max).toEqual(+moment().endOf('day') + 1);
@@ -746,12 +746,12 @@ describe('Time scale tests', function() {
 			});
 			it ('should not add ticks for min and max if they extend the labels range', function() {
 				var chart = this.chart;
+				var scale = chart.scales.x;
 				var options = chart.options.scales.xAxes[0];
 
 				options.time.min = '2012';
 				options.time.max = '2051';
 				chart.update();
-				var scale = chart.scales.x;
 
 				expect(scale.min).toEqual(+moment('2012', 'YYYY'));
 				expect(scale.max).toEqual(+moment('2051', 'YYYY'));
@@ -760,12 +760,12 @@ describe('Time scale tests', function() {
 			});
 			it ('should not duplicate ticks if min and max are the labels limits', function() {
 				var chart = this.chart;
+				var scale = chart.scales.x;
 				var options = chart.options.scales.xAxes[0];
 
 				options.time.min = '2017';
 				options.time.max = '2043';
 				chart.update();
-				var scale = chart.scales.x;
 
 				expect(scale.min).toEqual(+moment('2017', 'YYYY'));
 				expect(scale.max).toEqual(+moment('2043', 'YYYY'));
@@ -774,10 +774,10 @@ describe('Time scale tests', function() {
 			});
 			it ('should correctly handle empty `data.labels`', function() {
 				var chart = this.chart;
+				var scale = chart.scales.x;
 
 				chart.data.labels = [];
 				chart.update();
-				var scale = chart.scales.x;
 
 				expect(scale.min).toEqual(+moment('2018', 'YYYY'));
 				expect(scale.max).toEqual(+moment('2043', 'YYYY'));
@@ -830,11 +830,11 @@ describe('Time scale tests', function() {
 			});
 			it ('should add a step before if scale.min is before the first data', function() {
 				var chart = this.chart;
+				var scale = chart.scales.x;
 				var options = chart.options.scales.xAxes[0];
 
 				options.time.min = '2012';
 				chart.update();
-				var scale = chart.scales.x;
 
 				var start = scale.left;
 				var slice = scale.width / 5;
@@ -844,11 +844,11 @@ describe('Time scale tests', function() {
 			});
 			it ('should add a step after if scale.max is after the last data', function() {
 				var chart = this.chart;
+				var scale = chart.scales.x;
 				var options = chart.options.scales.xAxes[0];
 
 				options.time.max = '2050';
 				chart.update();
-				var scale = chart.scales.x;
 
 				var start = scale.left;
 				var slice = scale.width / 5;
@@ -858,12 +858,12 @@ describe('Time scale tests', function() {
 			});
 			it ('should add steps before and after if scale.min/max are outside the data range', function() {
 				var chart = this.chart;
+				var scale = chart.scales.x;
 				var options = chart.options.scales.xAxes[0];
 
 				options.time.min = '2012';
 				options.time.max = '2050';
 				chart.update();
-				var scale = chart.scales.x;
 
 				var start = scale.left;
 				var slice = scale.width / 6;
@@ -914,12 +914,12 @@ describe('Time scale tests', function() {
 			});
 			it ('should take in account scale min and max if outside the ticks range', function() {
 				var chart = this.chart;
+				var scale = chart.scales.x;
 				var options = chart.options.scales.xAxes[0];
 
 				options.time.min = '2012';
 				options.time.max = '2050';
 				chart.update();
-				var scale = chart.scales.x;
 
 				var start = scale.left;
 				var slice = scale.width / (2050 - 2012);
@@ -1045,6 +1045,7 @@ describe('Time scale tests', function() {
 
 					it ('should expand scale to the min/max range', function() {
 						var chart = this.chart;
+						var scale = chart.scales.x;
 						var options = chart.options.scales.xAxes[0];
 						var min = '02/19 07:00';
 						var max = '02/24 08:00';
@@ -1052,7 +1053,6 @@ describe('Time scale tests', function() {
 						options.time.min = min;
 						options.time.max = max;
 						chart.update();
-						var scale = chart.scales.x;
 
 						expect(scale.min).toEqual(+moment(min, 'MM/DD HH:mm'));
 						expect(scale.max).toEqual(+moment(max, 'MM/DD HH:mm'));
@@ -1065,6 +1065,7 @@ describe('Time scale tests', function() {
 					});
 					it ('should shrink scale to the min/max range', function() {
 						var chart = this.chart;
+						var scale = chart.scales.x;
 						var options = chart.options.scales.xAxes[0];
 						var min = '02/21 07:00';
 						var max = '02/22 20:00';
@@ -1072,7 +1073,6 @@ describe('Time scale tests', function() {
 						options.time.min = min;
 						options.time.max = max;
 						chart.update();
-						var scale = chart.scales.x;
 
 						expect(scale.min).toEqual(+moment(min, 'MM/DD HH:mm'));
 						expect(scale.max).toEqual(+moment(max, 'MM/DD HH:mm'));

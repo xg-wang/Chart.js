@@ -768,8 +768,6 @@ describe('Linear Scale', function() {
 		xScale.options.scaleLabel.display = true;
 		yScale.options.scaleLabel.display = true;
 		chart.update();
-		xScale = chart.scales.xScale0;
-		yScale = chart.scales.yScale0;
 
 		expect(xScale.paddingTop).toBeCloseToPixel(0);
 		expect(xScale.paddingBottom).toBeCloseToPixel(0);
