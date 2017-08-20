@@ -2,9 +2,9 @@
 <html>
 
 <head>
-    <title>Logarithmic Line Chart</title>
-    <script src="../../../dist/Chart.bundle.js"></script>
-    <script src="../../utils.js"></script>
+    <title>Toggle Scale Type</title>
+    <script src="../../dist/Chart.bundle.js"></script>
+    <script src="../utils.js"></script>
     <style>
     canvas {
         -moz-user-select: none;
@@ -23,6 +23,8 @@
     var randomScalingFactor = function() {
         return Math.ceil(Math.random() * 10.0) * Math.pow(10, Math.ceil(Math.random() * 5));
     };
+
+    var type = 'linear';
 
     var config = {
         type: 'line',
@@ -61,8 +63,8 @@
         options: {
             responsive: true,
             title:{
-                display:true,
-                text:'Chart.js Line Chart - Logarithmic'
+                display: true,
+                text: 'Chart.js Line Chart - ' + type
             },
             scales: {
                 xAxes: [{
@@ -70,7 +72,7 @@
                 }],
                 yAxes: [{
                     display: true,
-                    type: 'logarithmic',
+                    type: type
                 }]
             }
         }
@@ -82,12 +84,17 @@
     };
 
     document.getElementById('randomizeData').addEventListener('click', function() {
-        config.data.datasets.forEach(function(dataset) {
-            dataset.data = dataset.data.map(function() {
-                return randomScalingFactor();
-            });
-
-        });
+        type = type === 'linear' ? 'logarithmic' : 'linear';
+        window.myLine.options.title.text = 'Chart.js Line Chart - ' + type;
+        window.myLine.options.scales = {
+          xAxes: [{
+            display: true
+          }],
+          yAxes: [{
+            display: true,
+            type: type
+          }]
+        }
 
         window.myLine.update();
     });

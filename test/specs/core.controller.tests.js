@@ -858,7 +858,7 @@ describe('Chart', function() {
 			chart.update();
 
 			var yScale = chart.scales.yAxis0;
-			expect(yScale).toBeDefined();
+			expect(yScale).toBeUndefined();
 			var newyScale = chart.scales['y-axis-0'];
 			expect(newyScale.options.ticks.min).toBe(0);
 			expect(newyScale.options.ticks.max).toBe(10);

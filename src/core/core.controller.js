@@ -53,20 +53,8 @@ module.exports = function(Chart) {
 			Chart.defaults.global,
 			Chart.defaults[chart.config.type],
 			newOptions);
-		// only reset scale(s) with options if options not reset
-		if (chart.options === chart.config.options) {
-			if (newOptions.scales) {
-				chart.options.scales = newOptions.scales;
-			} else if (newOptions.scale) {
-				chart.options.scale = newOptions.scale;
-			}
-			if (newOptions.tooltips) {
-				chart.options.tooltips = newOptions.tooltips;
-			}
-		} else {
-			chart.options = newOptions;
-		}
-		chart.config.options = chart.options;
+
+		chart.options = chart.config.options = newOptions;
 		chart.ensureScalesHaveIDs();
 		chart.buildOrUpdateScales();
 		// Tooltip
@@ -271,38 +259,34 @@ module.exports = function(Chart) {
 
 			helpers.each(items, function(item) {
 				var scaleOptions = item.options;
+				var id = scaleOptions.id;
 				var scaleType = helpers.valueOrDefault(scaleOptions.type, item.dtype);
-				var scaleClass = Chart.scaleService.getScaleConstructor(scaleType);
-				if (!scaleClass) {
-					return;
-				}
 
 				if (positionIsHorizontal(scaleOptions.position) !== positionIsHorizontal(item.dposition)) {
 					scaleOptions.position = item.dposition;
 				}
 
-				var scale;
-				if (scales.hasOwnProperty(scaleOptions.id)) {
-					updated[scaleOptions.id] = true;
-					scale = scales[scaleOptions.id];
+				updated[id] = true;
+				var scale = null;
+				if (id in scales && scales[id].type === scaleType) {
+					scale = scales[id];
 					scale.options = scaleOptions;
 					scale.ctx = me.ctx;
 					scale.chart = me;
 				} else {
+					var scaleClass = Chart.scaleService.getScaleConstructor(scaleType);
+					if (!scaleClass) {
+						return;
+					}
 					scale = new scaleClass({
-						id: scaleOptions.id,
+						id: id,
+						type: scaleType,
 						options: scaleOptions,
 						ctx: me.ctx,
 						chart: me
 					});
 					scales[scale.id] = scale;
 				}
-				// clear up discarded scales
-				helpers.each(updated, function(id, hasUpdated) {
-					if (!hasUpdated) {
-						delete scales[id];
-					}
-				});
 
 				scale.mergeTicksOptions();
 
@@ -311,6 +295,12 @@ module.exports = function(Chart) {
 				// make the logic easier and remove some useless? custom code.
 				if (item.isDefault) {
 					me.scale = scale;
+				}
+			});
+			// clear up discarded scales
+			helpers.each(updated, function(hasUpdated, id) {
+				if (!hasUpdated) {
+					delete scales[id];
 				}
 			});
 
@@ -338,6 +328,7 @@ module.exports = function(Chart) {
 
 				if (meta.controller) {
 					meta.controller.updateIndex(datasetIndex);
+					meta.controller.linkScales();
 				} else {
 					var ControllerClass = Chart.controllers[meta.type];
 					if (ControllerClass === undefined) {
